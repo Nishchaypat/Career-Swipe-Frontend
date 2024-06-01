@@ -1,4 +1,6 @@
-# CareerSwipe 🚀                                                                                                          Here is the website link: http://3.15.214.74:8000/
+# CareerSwipe 🚀                                                                                                         
+
+[CareerSwipe.com](http://3.15.214.74:8000/)
 
 > Welcome to the future of career fairs with CareerSwipe!
 
