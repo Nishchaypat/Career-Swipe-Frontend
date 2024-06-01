@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom scrollbar styles */
+        .container::-webkit-scrollbar {
+            width: 10px; /* Width of the scrollbar */
+        }
+        
+        .container::-webkit-scrollbar-track {
+            background: #f1f1f1; /* Color of the scrollbar track */
+        }
+        
+        .container::-webkit-scrollbar-thumb {
+            background: #888; /* Color of the scrollbar thumb */
+            border-radius: 5px; /* Rounded corners */
+        }
+        
+        .container::-webkit-scrollbar-thumb:hover {
+            background: #555; /* Darker color on hover */
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: auto;
+            position: relative;
+            scroll-behavior: smooth;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 900px; /* Set a maximum width for better readability */
+            margin: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 12px;
+            text-align: center;
+            overflow-y: auto; /* Allow scrolling within the container */
+            max-height: 90vh; /* Limit the maximum height */
+            transition: background-color 0.3s ease; /* Added transition */
+        }
+        
+        .fav-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #007bff;
+            color: #fff;
+            width: 100px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .fav-btn:hover {
+            background-color: #0056b3;
+        }
+        
+        h1, h2 {
+            font-size: 1.5rem;
+            color: #333; /* Darken the text color for better contrast */
+            margin-bottom: 20px; /* Add some spacing below headings */
+        }
+        
+        .description {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 20px; /* Add some spacing below descriptions */
+        }
+        
+        .form-group {
+            text-align: left;
+            margin-bottom: 20px; /* Add consistent spacing between form groups */
+        }
+        
+        label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 10px; /* Adjust margin for better spacing */
+            color: #333; /* Darken the text color for better contrast */
+        }
+        
+        input[type="text"], input[type="number"], select {
+            width: calc(100% - 22px); /* Adjust input width to accommodate padding and border */
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 1rem;
+            margin-top: 5px; /* Adjust margin for better spacing */
+        }
+        
+        button {
+            width: 100%;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+        
+            h1, h2 {
+                font-size: 1.2rem;
+            }
+        
+            .description, input, button, select {
+                font-size: 0.9rem;
+            }
+        }
+
+        #loadingText {
+            font-weight: bold;
+            font-size: 30px;
+            color: #706bc0;
+            position: fixed;
+            top: 300px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 5px;
+                padding: 10px;
+            }
+        
+            h1, h2 {
+                font-size: 1rem;
+            }
+        
+            .description, input, button, select {
+                font-size: 0.8rem;
+            }
+        }
+        
+    </style>
+</head>
+<body>
+    <div id="loadingText"></div>
+    <div class="container">
+        <button class="fav-btn" onclick="location.href='{% url 'favStudent' %}'">Favourite</button>
+        <h1>Filter Candidates</h1>
+        <p class="description">Use the form below to specify the criteria for searching candidates. Fill in as many fields as necessary to narrow down your search.</p>
+        <form action="/postfilter/" method="post">
+            <section id="skillSection">
+                <h2>Skills</h2>
+                <p class="description">Add skills that are critical for the role.</p>
+                <div class="form-group">
+                    <input type="text" id="skill1" name="skills[]" placeholder="Enter a skill" required>
+                </div>
+                <button type="button" class="add-skill-btn" onclick="addSkillField()">Add More Skills</button>
+            </section>
+            <section id="gpaSection">
+                <h2>GPA</h2>
+                <p class="description">Specify GPA range from 2.0 to 4.0.</p>
+                <div class="form-group">
+                    <input type="number" id="GPA" name="GPA" min="2" max="4" step="0.01" placeholder="Enter GPA" required>
+                </div>
+            </section>
+            <section id="uniSection">
+                <h2>University</h2>
+                <p class="description">Select the candidate's current university.</p>
+                <div class="form-group">
+                    <select id="uni" name="uni" required>
+                        <option value="" disabled selected>Select University</option>
+                        <!-- Adding more university options -->
+                        <option value="Georgia State University">Georgia State University</option>
+                        <option value="Georgia Institute of Technology">Georgia Institute of Technology</option>
+                        <option value="University of Georgia">University of Georgia</option>
+                        <option value="Emory University">Emory University</option>
+                        <option value="Kennesaw State University">Kennesaw State University</option>
+                        <option value="Savannah College of Art and Design">Savannah College of Art and Design</option>
+                        <option value="University of North Georgia">University of North Georgia</option>
+                        <option value="Georgia Southern University">Georgia Southern University</option>
+                        <option value="Georgia College & State University">Georgia College & State University</option>
+                        <option value="Mercer University">Mercer University</option>
+                        <option value="Morehouse College">Morehouse College</option>
+                        <option value="Spelman College">Spelman College</option>
+                        <option value="Clark Atlanta University">Clark Atlanta University</option>
+                        <option value="Oglethorpe University">Oglethorpe University</option>
+                    </select>
+                </div>
+            </section>
+            <section id="majorSection">
+                <h2>Major</h2>
+                <p class="description">Choose the major field of study of the candidate.</p>
+                <div class="form-group">
+                    <select id="major" name="major" required>
+                        <option value="" disabled selected>Select Major</option>
+                        <!-- Adding more major options -->
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="Data Science">Data Science</option>
+                        <option value="Public Health">Public Health</option>
+                        <option value="Cyber Security">Cyber Security</option>
+                        <option value="Arts">Arts</option>
+                        <option value="Finance">Finance</option>
+                        <option value="Computer Information System">Computer Information System</option>
+                        <option value="Biomedical Engineering">Biomedical Engineering</option>
+                        <option value="Environmental Science">Environmental Science</option>
+                        <option value="Political Science">Political Science</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Chemistry">Chemistry</option>
+                        <option value="Physics">Physics</option>
+                        <option value="History">History</option>
+                        <option value="Psychology">Psychology</option>
+                    </select>
+                </div>
+            </section>
+            <section id="expSection">
+                <h2>Experience</h2>
+                <p class="description">Indicate minimum months of relevant experience.</p>
+                <div class="form-group">
+                    <input type="number" id="exp" name="exp" placeholder="Experience in months" min="1" required>
+                </div>
+            </section>
+            <button type="submit" id="submit-button" class="submit-button">Submit</button>
+        </form>
+    </div>
+    <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                function addSkillField() {
+                    var skillSection = document.getElementById('skillSection');
+                    var addButton = document.querySelector('.add-skill-btn'); // Get the add button
+                    var newSkillField = document.createElement('div');
+                    newSkillField.classList.add('form-group');
+                    newSkillField.innerHTML = '<input type="text" name="skills[]" required>';
+        
+                    // Insert the new skill field before the Add Skill button in the section
+                    skillSection.insertBefore(newSkillField, addButton);
+                }
+        
+                var addButton = document.querySelector('.add-skill-btn');
+                addButton.addEventListener('click', addSkillField);
+                var submitButton = document.getElementById('submit-button');
+                submitButton.addEventListener('click', function(event) {
+                var container = document.querySelector('.container');
+                container.style.opacity = '0'; 
+                container.style.transition = 'opacity 3s ease-out';
+                var loadingText = document.getElementById("loadingText");
+                var texts = ["Gotcha your Filters!!!!", "Getting skills you need", "Getting Specific GPA and above", "Getting Candidates from selected university", "Getting Right Major", "Looking for other information", "Generating Matching Experience", "Finalising the right candidates", "Almost done...."];
+                var currentIndex = 0;
+                var intervalId;
+            
+                function changeText() {
+                    loadingText.textContent = texts[currentIndex];
+                    currentIndex = (currentIndex + 1) % texts.length;
+                }
+            
+                function startLoadingPage() {
+                    intervalId = setInterval(changeText, 4000); 
+                }
+            
+                function stopLoadingPage() {
+                    clearInterval(intervalId);
+                }
+            
+                setTimeout(stopLoadingPage, 35000); 
+                startLoadingPage();
+            
+                var printingElement = document.getElementById("printing-element"); 
+                var textIntervalId = setInterval(function() {
+                    if (currentIndex < texts.length) {
+                        printingElement.textContent += texts[currentIndex] + "\n"; 
+                        currentIndex++;
+                    } else {
+                        clearInterval(textIntervalId); 
+                    }
+                }, 4400); 
+            });
+            });
+        </script>
+        
+</body>
+</html>

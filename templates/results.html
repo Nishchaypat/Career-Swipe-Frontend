@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profiles</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"> <!-- Font Awesome for icons -->
+    <style>
+        body {
+            font-family: 'Segoe UI', 'Tahoma', 'Geneva', 'Verdana', sans-serif;
+            margin: 0;
+            background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+    
+        .container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: flex-start;
+            width: 100%;
+            max-width: 1200px;
+            gap: 20px;
+        }
+    
+        #userList, #details {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            overflow-y: auto;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+    
+        #userList {
+            flex: 1;
+            max-width: 300px;
+        }
+    
+        #details {
+            flex: 2;
+            background: #f0f0f0;
+        }
+    
+        #userList:hover, #details:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+    
+        button, .favorite, .message {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 12px;
+            background-color: transparent;
+            color: #007bff;
+            border: 2px solid #007bff;
+            cursor: pointer;
+            text-align: center;
+            border-radius: 12px;
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    
+        button:hover, .favorite:hover, .message:hover {
+            background-color: #007bff;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+    
+        .userInfo {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+    
+        .userField {
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+    
+        .label {
+            font-weight: bold;
+            color: #555;
+            display: inline-block;
+            width: 100px;
+        }
+    
+        .value {
+            color: #333;
+        }
+    
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 15px;
+        }
+    
+        .favorite, .message {
+            flex: 1;
+            text-align: center;
+        }
+    
+        .details-heading {
+            color: #007bff;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+    
+        .details-content {
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+    
+        #logout-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            width: 100px;
+            height: 40px;
+            background-color: white;
+            color: black;
+            border-radius: 12px;
+            font-size: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s, transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    
+        #logout-btn:hover {
+            background-color: black;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <button id="logout-btn" onclick="location.href='{% url 'log' %}'">Logout</button>
+<div class="container">
+    <div id="userList"></div>
+    <div id="details">
+        <h1 class="details-heading">Select a user to see details.</h1>
+        <div class="details-content"></div>
+    </div>
+</div>
+
+
+<script>
+var currentUserId = '{{ request.user.id }}';
+var userData = {{file|safe}};
+var ids = {{ids|safe}};
+var usersData = Object.values(userData);
+
+document.addEventListener('DOMContentLoaded', function () {
+    const userList = document.getElementById('userList');
+    const details = document.getElementById('details');
+    function addToFavorites(userId) {
+        fetch('/add_to_favorites/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ userId: userId })
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('Failed to add user to favorites.');
+            }
+        })
+        .then(data => {
+            alert('User has been added to favorites.'); // Show pop-up message
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to add user to favorites. Please try again later.');
+        });
+    }
+    function renderUserList() {
+        usersData.forEach((user, index) => {
+            const userContainer = document.createElement('div');
+            const button = document.createElement('button');
+            let buttonText = '<div class="userInfo">';
+            buttonText += `<div class="userField"><span class="label">Name:</span> <span class="value">${user.Personal_Info.Name}</span></div>`;
+            buttonText += `<div class="userField"><span class="label">Location:</span> <span class="value">${user.Personal_Info.Location}</span></div>`;
+            buttonText += `<div class="userField"><span class="label">Phone Number:</span> <span class="value">${user.Personal_Info['Phone Number']}</span></div>`;
+            buttonText += `<div class="userField"><span class="label">Email:</span> <span class="value">${user.Personal_Info.Email}</span></div>`;
+            buttonText += '</div>';
+            button.innerHTML = buttonText;
+            button.onclick = () => showDetails(index);
+
+            //const favoriteForm = document.createElement('form');
+            //favoriteForm.action = '/add_to_favorites/';
+            //favoriteForm.method = 'POST';
+
+            const favoriteForm = document.createElement('form');
+            favoriteForm.action = '/add_to_favorites/';
+            favoriteForm.method = 'POST';
+
+            // Add an event listener to the form submission
+            favoriteForm.addEventListener('submit', async (event) => {
+                event.preventDefault(); // Prevent default form submission behavior
+
+                // Submit the form using Fetch API
+                try {
+                    const response = await fetch(favoriteForm.action, {
+                        method: favoriteForm.method,
+                        body: new FormData(favoriteForm)
+                    });
+                    const responseData = await response.json();
+
+                    if (response.ok) {
+                        // If the request was successful, show a dialog box
+                        alert('Favorite has been added!');
+                    } else {
+                        // If there was an error, log the error message
+                        console.error('Error:', responseData.error);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            });
+
+            // CSRF Token needed for Django forms
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = getCookie('csrftoken'); // get CSRF Token from cookies
+            favoriteForm.appendChild(csrfInput);
+
+            // Hidden input to carry the user ID
+            const userIdInput = document.createElement('input');
+            userIdInput.type = 'hidden';
+            userIdInput.name = 'userId';
+            userIdInput.value = ids[index];
+            favoriteForm.appendChild(userIdInput);
+
+            // Submit button for the form
+            const favoriteButton = document.createElement('button');
+            favoriteButton.type = 'submit';
+            favoriteButton.innerHTML = 'Favorite';
+            favoriteButton.className = 'favorite';
+            favoriteForm.appendChild(favoriteButton);
+
+            const messageButton = document.createElement('button');
+            messageButton.innerHTML = 'Message';
+            messageButton.className = 'message';
+            messageButton.onclick = () => alert('Messaging not implemented yet.');
+
+            const actionButtons = document.createElement('div');
+            actionButtons.className = 'action-buttons';
+            actionButtons.appendChild(favoriteForm);
+            actionButtons.appendChild(messageButton);
+            
+
+            userContainer.appendChild(button);
+            userContainer.appendChild(actionButtons);
+            userList.appendChild(userContainer);
+        });
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function showDetails(index) {
+        const user = usersData[index];
+        let output = `<h1>${user.Personal_Info.Name}</h1>`;
+
+        for (const key in user) {
+            if (key === "Personal_Info" || key === "Improvement_Suggestions" || key === "Suggestions" || key === "Projects")
+            {
+                continue
+            }
+            output += `<h2>${key.replace(/_/g, ' ')}</h2>`;
+            
+            if (key === "Education") {
+                output += "<ul>";
+                for (var subKey in user[key]) {
+                    output += `<li><h3>${subKey}:</h3> ${user[key][subKey]}</li>`;
+                }
+                output += "</ul>";
+            } 
+            else if (key === "Extracurricular_Activities") {
+                output += "<ul>";
+                user[key].forEach(function(activity) {
+                    output += `<li><strong>Activity:</strong> ${activity["Activity"]} <strong>Role:</strong> ${activity["Role"]}</li>`;
+                });
+                output += "</ul>";
+            }  
+            else if (key === "Links") {
+                output += "<ul>";
+                user[key].forEach(function(link) {
+                    output += `<li><a href='${link}' target='_blank'>${link}</a></li>`;
+                });
+                output += "</ul>";
+            } 
+            else if (key === "Other") {
+                for (var subKey in user[key]) {
+                    output += `<p><strong>Certificate/ Transcript:</strong> <a href="${user[key][subKey]}" target="_blank">${user[key][subKey]}</a></p>`;
+                    output += "</ul>";
+                }
+            } 
+            else if (key === "Skills") {
+                for (var subKey in user[key]) {
+                    output += `<h3>${subKey}:</h3><ul>`;
+                    user[key][subKey].forEach(function(skill) {
+                        output += `<li>${skill}</li>`;
+                    });
+                    output += "</ul>";
+                }
+            } 
+            else if (key === "Score") {
+                output += `<p><strong>Career Swipe Score:</strong> ${user[key]}</p>`;
+            } 
+            else if (key === "Resume") {
+                output += `<p><strong>Resume Link:</strong> <a href="${user[key]}" target="_blank">${user[key]}</a></p>`;
+            } 
+            else if (key === "Work_Experience") {
+                user[key].forEach(function(experience) {
+                    output += `<h3>${experience["Position"]}</h3>`;
+                    output += `<p><strong>Company:</strong> ${experience["Company"]}</p>`;
+                    output += `<p><strong>Location:</strong> ${experience["Location"]}</p>`;
+                    output += `<p><strong>Dates:</strong> ${experience["Dates"]}</p>`;
+                    output += `<p><strong>Summary:</strong> ${experience["Summary"]}</p>`;
+                });
+            }
+        }
+        details.innerHTML = output;
+    }
+
+    renderUserList();
+});
+</script>
+</body>
+</html>

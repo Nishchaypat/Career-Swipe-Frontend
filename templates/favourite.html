@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Favourite Profiles</title>
+<style>
+    body { 
+        font-family: 'Segoe UI', 'Tahoma', 'Geneva', 'Verdana', 'sans-serif';
+        margin: 0;
+        display: flex;
+        height: 100vh;
+        background-color: #f8f9fa; /* Light gray background */
+    }
+    #userList { 
+        min-width: 300px; /* Maintain minimum width */
+        width: 30%; /* Set width to a percentage */
+        background: #fff; /* White background */
+        color: #333; /* Dark text color */
+        overflow-y: auto;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+        padding: 20px;
+        border-radius: 8px; /* Rounded corners */
+        transition: width 0.3s; /* Smooth transition */
+    }
+    #details { 
+        flex-grow: 1;
+        padding: 20px;
+        background: #f0f0f0; /* Light gray background */
+        color: #333; /* Dark text color */
+        overflow-y: auto;
+        border-radius: 8px; /* Rounded corners */
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+    button, .favorite, .message {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 10px;
+        background-color: transparent; /* Transparent background */
+        color: #007bff; /* Blue text */
+        border: none; /* No border */
+        cursor: pointer;
+        text-align: left;
+        border-radius: 8px; /* Rounded corners */
+        transition: background-color 0.3s; /* Smooth transition on hover */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add box-shadow for depth */
+    }
+    button:hover, .favorite:hover, .message:hover {
+        background-color: #f0f0f0; /* Light gray background on hover */
+    }
+    h1, h2, h3 {
+        color: #444; /* Dark heading color */
+    }
+    h1 {
+        margin-bottom: 20px;
+        font-size: 28px; /* Larger font size for main headings */
+    }
+    h2 {
+        font-size: 20px;
+        border-bottom: 1px solid #ddd; /* Lighter border color for subheadings */
+        padding-bottom: 5px;
+        margin-top: 20px;
+    }
+    ul, p, li {
+        padding: 0;
+        margin: 0;
+    }
+    ul {
+        padding-left: 20px;
+        list-style-type: none;
+    }
+    li {
+        line-height: 1.6;
+        margin-bottom: 5px;
+    }
+    a {
+        color: #4a9eda;
+        text-decoration: none;
+    }
+    a:hover {
+        text-decoration: underline;
+    }
+    .userInfo {
+        text-align: left; 
+        padding: 5px; 
+    }
+    .userField {
+        margin-bottom: 5px; 
+    }
+    .label {
+        font-weight: bold; 
+        color: #aaa;
+        display: inline-block; 
+        width: 100px; 
+    }
+    .value {
+        color: #333; /* Dark text color for user details */
+    }
+    .action-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+    }
+    .favorite, .message {
+        flex: 1;
+        text-align: center;
+    }
+    .favorite {
+        margin-right: 5px; /* Add margin to the right of Favorite button */
+    }
+</style>
+</head>
+<body>
+<div id="userList"></div>
+<div id="details"><p>Select your favorite user to see their details.</p></div>
+
+
+<script>
+var currentUserId = '{{ request.user.id }}';
+var userData = {{file|safe}};
+var ids = {{ids|safe}};
+var usersData = Object.values(userData);
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    const userList = document.getElementById('userList');
+    const details = document.getElementById('details');
+
+    function renderUserList() {
+        usersData.forEach((user, index) => {
+            const userContainer = document.createElement('div');
+            const button = document.createElement('button');
+            let buttonText = '<div class="userInfo">';
+            buttonText += `<div class="userField"><span class="label">Name:</span> <span class="value">${user.Personal_Info.Name}</span></div>`;
+            buttonText += `<div class="userField"><span class="label">Location:</span> <span class="value">${user.Personal_Info.Location}</span></div>`;
+            buttonText += `<div class="userField"><span class="label">Phone Number:</span> <span class="value">${user.Personal_Info['Phone Number']}</span></div>`;
+            buttonText += `<div class="userField"><span class="label">Email:</span> <span class="value">${user.Personal_Info.Email}</span></div>`;
+            buttonText += '</div>';
+            button.innerHTML = buttonText;
+            button.onclick = () => showDetails(user);
+
+            // Create a form for favorite action
+            const favoriteForm = document.createElement('form');
+            favoriteForm.action = '/remove_from_favorites/';
+            favoriteForm.method = 'POST';
+
+            // Add an event listener to the form submission
+            favoriteForm.addEventListener('submit', async (event) => {
+                event.preventDefault(); // Prevent default form submission behavior
+
+                // Submit the form using Fetch API
+                try {
+                    const response = await fetch(favoriteForm.action, {
+                        method: favoriteForm.method,
+                        body: new FormData(favoriteForm)
+                    });
+                    const responseData = await response.json();
+
+                    if (response.ok) {
+                        // If the request was successful, show a dialog box
+                        alert('Favorite has been Removed! Refresh the page for changes');
+                    } else {
+                        // If there was an error, log the error message
+                        console.error('Error:', responseData.error);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            });
+
+            // CSRF Token needed for Django forms
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = getCookie('csrftoken'); // get CSRF Token from cookies
+            favoriteForm.appendChild(csrfInput);
+
+            // Hidden input to carry the user ID
+            const userIdInput = document.createElement('input');
+            userIdInput.type = 'hidden';
+            userIdInput.name = 'userId';
+            userIdInput.value = ids[index];
+            favoriteForm.appendChild(userIdInput);
+
+            // Submit button for the form
+            const favoriteButton = document.createElement('button');
+            favoriteButton.type = 'submit';
+            favoriteButton.innerHTML = 'Unfavorite';
+            favoriteButton.className = 'favorite';
+            favoriteForm.appendChild(favoriteButton);
+
+            const messageButton = document.createElement('button');
+            messageButton.innerHTML = 'Message';
+            messageButton.className = 'message';
+            messageButton.onclick = () => alert('Messaging not implemented yet.');
+
+            const actionButtons = document.createElement('div');
+            actionButtons.className = 'action-buttons';
+            actionButtons.appendChild(favoriteForm);
+            actionButtons.appendChild(messageButton);
+
+            userContainer.appendChild(button);
+            userContainer.appendChild(actionButtons);
+            userList.appendChild(userContainer);
+        });
+    }
+
+    // Utility function to get cookie by name
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function showDetails(user) {
+        let output = `<h1>${user.Personal_Info.Name}</h1>`;
+        for (const key in user) {
+            if (key === "Personal_Info" || key === "Improvement_Suggestions" || key === "Suggestions" || key === "Projects") {
+                continue;
+            }
+            output += `<h2>${key.replace(/_/g, ' ')}</h2>`;
+            if (key === "Education") {
+                output += "<ul>";
+                for (const subKey in user[key]) {
+                    output += `<li><h3>${subKey}:</h3> ${user[key][subKey]}</li>`;
+                }
+                output += "</ul>";
+            } else if (key === "Extracurricular_Activities") {
+                output += "<ul>";
+                user[key].forEach(function(activity) {
+                    output += `<li><strong>Activity:</strong> ${activity["Activity"]} <strong>Role:</strong> ${activity["Role"]}</li>`;
+                });
+                output += "</ul>";
+            } else if (key === "Links") {
+                output += "<ul>";
+                user[key].forEach(function(link) {
+                    output += `<li><a href='${link}' target='_blank'>${link}</a></li>`;
+                });
+                output += "</ul>";
+            } else if (key === "Skills") {
+                for (const subKey in user[key]) {
+                    output += `<h3>${subKey}:</h3><ul>`;
+                    user[key][subKey].forEach(function(skill) {
+                        output += `<li>${skill}</li>`;
+                    });
+                    output += "</ul>";
+                }
+            } else if (key === "Score") {
+                output += `<p><strong>Career Swipe Score:</strong> ${user[key]}</p>`;
+            } else if (key === "Work_Experience") {
+                user[key].forEach(function(experience) {
+                    output += `<h3>${experience["Position"]}</h3>`;
+                    output += `<p><strong>Company:</strong> ${experience["Company"]}</p>`;
+                    output += `<p><strong>Location:</strong> ${experience["Location"]}</p>`;
+                    output += `<p><strong>Dates:</strong> ${experience["Dates"]}</p>`;
+                    output += `<p><strong>Summary:</strong> ${experience["Summary"]}</p>`;
+                });
+            }
+        }
+        // Append details to the details container
+        details.innerHTML = output;
+    }
+
+    renderUserList();
+});
+</script>
+</body>
+</html>

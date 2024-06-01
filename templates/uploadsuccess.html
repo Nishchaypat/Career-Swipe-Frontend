@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Profile</title>
+
+
+<style>
+    body { 
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        display: flex;
+        height: 100vh;
+        background: #121212; /* Even darker background for more contrast */
+        color: #e0e0e0; /* Light grey text for better readability */
+    }
+
+    #userList { 
+        width: 300px;
+        background: #1c1c1c; /* Slightly lighter than body for depth */
+        overflow-y: auto;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        padding: 20px;
+    }
+
+    #details, #insights {
+        flex-grow: 1;
+        padding: 20px;
+        background: #242424; /* Dark grey background */
+        overflow-y: auto;
+        border-left: 1px solid #343434; /* Slightly darker separator for a subtle effect */
+    }
+
+    button {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 10px;
+        color: #e0e0e0;
+        background-color: #333333;
+        border: 1px solid #444444;
+        cursor: pointer;
+        text-align: left;
+        font-size: 16px;
+        transition: background-color 0.3s, border-color 0.3s;
+        border-radius: 4px;
+    }
+
+    button:hover {
+        background-color: #3d3d3d;
+        border-color: #555555;
+    }
+
+    button[data-expanded="true"] {
+        background-color: #333333;
+        border-color: #444444;
+    }
+
+    h1, h2, h3 {
+        color: #ffffff;
+    }
+
+    h1 {
+        font-size: 26px; 
+        margin-bottom: 20px;
+    }
+
+    h2 {
+        font-size: 22px; 
+        border-bottom: 1px solid #3a4048;
+        padding-bottom: 5px;
+        margin-top: 20px;
+    }
+
+    ul, p, li {
+        padding: 0;
+        margin: 0;
+    }
+
+    ul {
+        padding-left: 20px;
+        list-style-type: none;
+    }
+
+    li {
+        line-height: 1.6;
+        margin-bottom: 5px;
+    }
+
+    a {
+        color: #1abc9c; /* Brighter accent color for links */
+        text-decoration: none;
+    }
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+    .userInfo {
+        text-align: left;
+        padding: 5px; 
+    }
+
+    .userField {
+        margin-bottom: 10px; 
+    }
+
+    .label {
+        font-weight: bold; 
+        color: #e0e0e0; 
+        display: inline-block; 
+        width: 120px; 
+    }
+
+    .value {
+        color: #bbbbbb; 
+    }
+
+    .profile-container {
+        display: flex;
+        justify-content: space-between;
+        padding: 20px;
+    }
+    #reupload {
+        background-color: #4a69bd; 
+        color: #ffffff; 
+        border: 2px solid transparent; 
+        padding: 2px 4px; 
+        font-size: 20px; 
+        transition: background-color 0.5s, border-color 0.5s, box-shadow 0.5s; 
+        border-radius: 6px; 
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); 
+        position: relative; 
+        display: block;
+        width: auto; 
+        margin: 0 0 10px 0; 
+    }
+    #reupload:hover, #reupload:focus {
+        background-color: #333333; 
+        border-color: #4a69bd; 
+        box-shadow: 0 0 0 3px rgba(74, 105, 189, 0.5); 
+    }
+
+    #reupload::after {
+        content: ''; 
+        position: absolute;
+        right: -4px; 
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background-color: #333333;
+        opacity: 0; 
+        transition: opacity 0.3s; 
+    }
+    #reupload:hover::after, #reupload:focus::after {
+        opacity: 1; 
+    }
+    #btn-group {
+        background-color: #4a69bd;
+        color: #ffffff;
+        border: 2px solid transparent;
+        padding: 4px;
+        font-size: 15px;
+        transition: background-color 0.5s, border-color 0.5s, box-shadow 0.5s;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        position: relative;
+        left: 0;
+        top: 0;
+        bottom: 0; /* Extend the button from top to bottom */
+        width: auto;
+        margin: 0;
+        z-index: 9999; /* Ensure it's above other elements */
+        display: flex; /* Use flexbox for vertical alignment */
+        flex-direction: column; /* Arrange items vertically */
+        justify-content: center; /* Space evenly between items */
+        align-items: center;
+    }
+    
+    #btn-group:hover,
+    #btn-group:focus {
+        background-color: #333333;
+        border-color: #4a69bd;
+        box-shadow: 0 0 0 3px rgba(74, 105, 189, 0.5);
+    }
+    
+    #btn-group::after {
+        content: '';
+        position: absolute;
+        right: -4px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background-color: #333333;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    #btn-group:hover::after,
+    #btn-group:focus::after {
+        opacity: 1;
+    }
+    
+    
+    
+</style>
+
+
+</head>
+<body>
+<button id="btn-group" onclick="location.href='{% url 'log' %}'">Logout</button>
+<div id="userList"></div>
+<div id="details"><p>Details for recruiters</p></div>
+<div id="insights"><p>Tailored Suggestions</p></div>
+<button id="reupload" onclick="location.href='{% url 'reupload' %}'">Re-Upload Resume</button>
+
+<script>
+var userData = {{file|safe}};
+var usersData = Object.values(userData);
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    const userList = document.getElementById('userList');
+    const details = document.getElementById('details');
+    const insights = document.getElementById('insights');
+
+    function renderUserList() {
+        usersData.forEach((user, index) => {
+            const button = document.createElement('button');
+            button.setAttribute('data-expanded', 'false');
+            button.innerHTML = 'Explore your Data';
+            button.onclick = function() {
+                const expanded = button.getAttribute('data-expanded') === 'true';
+                toggleDetails(expanded, button, index);
+            };
+            userList.appendChild(button);
+        });
+    }
+
+    function toggleDetails(expanded, button, index) {
+        if (!expanded) {
+            showDetails(index);
+            button.innerHTML = getUserButtonContent(usersData[index], true);
+            button.setAttribute('data-expanded', 'true');
+        } else {
+            details.innerHTML = '<p>Details for recruiters.</p>';
+            button.innerHTML = 'Explore your Data';
+            insights.innerHTML = 'Tailored Suggestions';
+            button.setAttribute('data-expanded', 'false');
+        }
+    }
+
+    function getUserButtonContent(user, expanded) {
+        return 'Hide you Data'
+    }
+
+    function showDetails(index) {
+        const user = usersData[index];
+        let detailsOutput = `<h1>${user.Personal_Info.Name}</h1>`; 
+        let insightsOutput = `<h1>Insights</h1>`; 
+    
+        for (const key in user) {
+    
+            let sectionOutput = `<h2>${key.replace(/_/g, ' ')}</h2>`; 
+    
+            if (key === "Education" || key === "Extracurricular_Activities" || key === "Links" ||
+                key === "Skills" || key === "Work_Experience" || key === "Score" || key=="Personal_Info") {
+                sectionOutput += handleStandardSections(user[key], key);
+                detailsOutput += sectionOutput;
+            } else if (key === "Suggestions" || key === "Projects" || key === "Improvement_Suggestions") {
+                sectionOutput += handleInsightSections(user[key], key);
+                insightsOutput += sectionOutput;
+            }
+        }
+    
+        document.getElementById('details').innerHTML = detailsOutput;
+        document.getElementById('insights').innerHTML = insightsOutput;
+    }
+    
+    function handleStandardSections(data, key) {
+        let output = "<ul>";
+        switch (key) {
+            case "Education":
+                for (var subKey in data) {
+                    output += `<li><h3>${subKey}:</h3> ${data[subKey]}</li>`;
+                }
+                break;
+            case "Personal_Info":
+                for (var subKey in data) {
+                    output += `<li><h3>${subKey}:</h3> ${data[subKey]}</li>`;
+                }
+                break;
+            case "Extracurricular_Activities":
+                data.forEach(activity => {
+                    output += `<li><strong>Activity:</strong> ${activity["Activity"]} <strong>Role:</strong> ${activity["Role"]}</li>`;
+                });
+                break;
+            case "Links":
+                data.forEach(link => {
+                    output += `<li><a href='${link}' target='_blank'>${link}</a></li>`;
+                });
+                break;
+            case "Skills":
+                for (var subKey in data) {
+                    output += `<h3>${subKey}:</h3>`;
+                    data[subKey].forEach(skill => {
+                        output += `<li>${skill}</li>`;
+                    });
+                }
+                break;
+            case "Work_Experience":
+                data.forEach(experience => {
+                    output += `<h3>${experience["Position"]}</h3>`;
+                    output += `<p><strong>Company:</strong> ${experience["Company"]}</p>`;
+                    output += `<p><strong>Location:</strong> ${experience["Location"]}</p>`;
+                    output += `<p><strong>Dates:</strong> ${experience["Dates"]}</p>`;
+                    output += `<p><strong>Summary:</strong> ${experience["Summary"]}</p>`;
+                });
+                break;
+            case "Score":
+                output += `<p><strong>Career Swipe Score:</strong> ${data}</p>`;
+                break;
+        }
+        output += "</ul>";
+        return output;
+    }
+    
+    function handleInsightSections(data, key) {
+        let output = "<ul>";
+        switch (key) {
+            case "Suggestions":
+                data.forEach(role => {
+                    output += `<li>${role}</li>`;
+                });
+                break;
+            case "Projects":
+                for (var subKey in data) {
+                    output += `<li><h3>${data[subKey]}</h3></li>`;
+                };
+                break;
+            case "Improvement_Suggestions":
+                data.forEach(suggestion => {
+                    output += `<li>${suggestion}</li>`;
+                });
+                break;
+        }
+        output += "</ul>";
+        return output;
+    }
+
+    renderUserList();
+
+});
+</script>
+</body>
+</html>

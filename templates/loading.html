@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading Page</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden; /* Hide horizontal scrollbar */
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            width: 350px;
+            padding: 30px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: background-color 0.3s ease; /* Added transition */
+        }
+        .container.dark {
+            background-color: #343a40; /* Dark background color */
+            color: #ffffff; /* Light text color */
+        }
+        .container.light {
+            background-color: #ffffff; /* Light background color */
+            color: #343a40; /* Dark text color */
+        }
+        .container h1 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: #343a40; /* Bold color for headings */
+        }
+        .container form {
+            margin-top: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #495057;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            outline: none;
+        }
+        .form-group input[type="submit"] {
+            background-color: #343a40;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .form-group input[type="submit"]:hover {
+            background-color: #343a40;
+        }
+        .btn-group button {
+            margin-right: 10px;
+            background-color: #6c757d;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .btn-group button:hover {
+            background-color: #5a6268;
+        }
+
+        /* Added for background strip */
+        .background-strip {
+            position: absolute;
+            top: 0;
+            left: -33.33%; /* Initially off-screen to the left */
+            width: 133.33%; /* Extend beyond the screen width for animation */
+            height: 100%;
+            z-index: -1;
+            background-color: black;
+            animation: moveBackground 12s ease-in-out infinite; /* Adjust timing as needed */
+        }
+
+        @keyframes moveBackground {
+            0% {
+                transform: translateX(-100%); /* Start position (off-screen to the left) */
+            }
+            50% {
+                transform: translateX(100%); /* Midway, move to the right */
+            }
+            100% {
+                transform: translateX(-100%); /* End position (off-screen to the left) */
+            }
+        }
+
+        /* Text color animation */
+        @keyframes changeTextColor {
+            0%, 100% {
+                color: #343a40; /* Dark text color */
+            }
+            50% {
+                color: #ffffff; /* Light text color */
+            }
+        }
+        .upload-button, .submit-button {
+            display: inline-block;
+            background-color: #343a40;
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none; /* Remove default button border */
+            margin-right: 10px; /* Adjust margin between buttons */
+        }
+
+        .upload-button:hover, .submit-button:hover {
+            background-color: #5a6268;
+        }
+        .logout-btn {
+            position: fixed;
+            bottom: 150px; /* Adjust the distance from the bottom of the page */
+            left: 50%; /* Align horizontally in the center */
+            transform: translateX(-50%); /* Center horizontally */
+            background-color: #343a40;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="background-strip"></div>
+        <div class="loading-text" id="loadingText">Loading...</div>
+    </div>
+
+    <script>
+        var loadingText = document.getElementById("loadingText");
+        var texts = ["Gotcha your resume!!!!", "Getting Personal Information", "Getting Skills", "Getting Work Experience", "Getting Education", "Looking for other information","Generating Matching Position", "Creating Feedback", "Almost done...."];
+        var currentIndex = 0;
+        var intervalId;
+
+        function changeText() {
+            loadingText.textContent = texts[currentIndex];
+            currentIndex = (currentIndex + 1) % texts.length;
+        }
+
+        function startLoadingPage() {
+            intervalId = setInterval(changeText, 4400); // Change text every 4 seconds
+        }
+
+        function stopLoadingPage() {
+            clearInterval(intervalId);
+        }
+
+        startLoadingPage(); 
+    </script>
+</body>
+</html>
